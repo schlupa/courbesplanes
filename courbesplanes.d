@@ -1,22 +1,4 @@
 /* 10  GOTO 330
-20  IF O%(YB) >  = 0 THEN  IF XB > O%(YB) THEN 50
-30  IF XA < XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
-40  GOTO 60
-50  IF XA > XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
-60 XD = XB - XA:YD = YB - YA:S =  ABS (XD): IF  ABS (YD) > S THEN S =  ABS (YD)
-70  IF S = 0 THEN  RETURN
-80 XD = XD / S:YD = YD / S:XX = XA - XD:YY = YA - YD
-90  FOR I = 0 TO S:XX = XX + XD:YY = YY + YD:XP =  INT (XX + .5):YP =  INT (YY + .5)
-100  IF O%(YP) < 0 THEN O%(YP) = XP:U%(YP) = XP: GOTO 140
-110  IF XP > O%(YP) THEN O%(YP) = XP: GOTO 140
-120  IF XP < U%(YP) THEN U%(YP) = XP: GOTO 140
-130  GOTO 150
-140  HPLOT YP,XP
-150  NEXT : RETURN
-200 Z = 0:R = X * X + Y * Y: IF R < 4 THEN Z =  -  SQR (4 - R)
-300 XX = X * P4 + Y * P5 - Z * P3
-310 YY = Y * P1 - X * P2
-320  RETURN
 
 850  PRINT
 860  PRINT "JE CALCULE UN CHAMP DE DONNEES"
@@ -72,6 +54,67 @@ int[BR-1] O;                                        // 370  DIM O%(BR - 1),U%(BR
 int[BR-1] U;
 int[][] PX, PY;                                     // 500  DIM PX%(NL,NL),PY%(NL,NL)
 float[] X, Y;                                       // 500  DIM X((NL + 1) ^ 2 - 1),Y((NL + 1) ^ 2 - 1)
+
+
+/* Plot dot */
+void GOSUB20()
+{
+  if(O(YB) < 0 || XB <= O(YB)) {                    // 20  IF O%(YB) >  = 0 THEN  IF XB > O%(YB) THEN 50
+    if(XA < XB) {                                   // 30  IF XA < XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
+      X = XA;      XA = XB;      XB = X;
+      Y = YA;      YA = YB;      YB = Y;
+    }                                               // 40  GOTO 60
+  }
+  else {                                            // 50  IF XA > XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
+    if(XA > XB) {
+      X = XA;      XA = XB;      XB = X;
+      Y = YA;      YA = YB;      YB = Y;
+    }
+  }
+  XD = XB - XA;                                     // 60 XD = XB - XA:YD = YB - YA:S =  ABS (XD): IF  ABS (YD) > S THEN S =  ABS (YD)
+  YD = YB - YA;
+  S = fabs(XD);
+  if(fabs(YD) > S)
+    S = fabs(YD);
+  if(S) {                                           // 70  IF S = 0 THEN  RETURN
+    XD = XD / S;                                    // 80 XD = XD / S:YD = YD / S:XX = XA - XD:YY = YA - YD
+    YD = YD / S;
+    XX = XA - XD;
+    YY = YA - YD;
+    for(I=0; I<=S; I++) {                           // 90  FOR I = 0 TO S:XX = XX + XD:YY = YY + YD:XP =  INT (XX + .5):YP =  INT (YY + .5)
+      XX = XX + XD;
+      YY = YY + YD;
+      XP = floor(XX + .5);
+      YP = floor(YY + .5);
+      if(O(YP)<0) {                                 // 100  IF O%(YP) < 0 THEN O%(YP) = XP:U%(YP) = XP: GOTO 140
+        O(YP) = XP;
+        U(YP) = XP;
+      }
+      else {
+        if(XP > O(YP))                              // 110  IF XP > O%(YP) THEN O%(YP) = XP: GOTO 140
+          O(YP) = XP;
+        else                                        // 120  IF XP < U%(YP) THEN U%(YP) = XP: GOTO 140
+          if(XP < U(YP))
+            U(YP) = XP;
+        continue;                                   // 130  GOTO 150
+      }
+      HPLOT(YP,XP);                                 // 140  HPLOT YP,XP
+    }                                               // 150  NEXT : RETURN
+  }
+}
+
+/* Compute projected values */
+void GOSUB200()
+{
+  Z=0;                                              // 200 Z = 0:R = X * X + Y * Y: IF R < 4 THEN Z =  -  SQR (4 - R)
+  R = X * X + Y * Y;
+  if(R < 4)
+    Z = -sqrt(4 - R);
+  XX = X*P4 + Y*P5 - Z*P3;                          // 300 XX = X * P4 + Y * P5 - Z * P3
+  YY = Y*P1 - X*P2;                                 // 310 YY = Y * P1 - X * P2
+}                                                   // 320  RETURN
+
+
 
 void GOTO470()
 {
