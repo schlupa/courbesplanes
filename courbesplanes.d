@@ -1,22 +1,5 @@
 /* 10  GOTO 330
 
-850  PRINT
-860  PRINT "JE CALCULE UN CHAMP DE DONNEES"
-870  PRINT "NORMEES."
-880  PRINT : PRINT
-890 XD = (XB - XA) / (HH - 1):YD = (YB - YA) / (BR - 1):PT = 0
-900  FOR NX = 0 TO NL: FOR NY = 0 TO NL
-910 PX%(NX,NY) = (X(PT) - XA) / XD + .5:PY%(NX,NY) = (Y(PT) - YA) / YD + .5: POKE 1024,NX: POKE 1025,NY:PT = PT + 1: NEXT : NEXT
-920  HGR2
-930  FOR NY = NL - 1 TO 0 STEP  - 1:XA = PX%(NL,NY + 1):YA = PY%(NL,NY + 1)
-940 XB = PX%(NL,NY):YB = PY%(NL,NY): GOSUB 20: NEXT
-950  FOR NX = NL - 1 TO 0 STEP  - 1:XA = PX%(NX + 1,NL):YA = PY%(NX + 1,NL)
-960 XB = PX%(NX,NL):YB = PY%(NX,NL): GOSUB 20: FOR NY = NL - 1 TO 0 STEP  - 1
-970 XA = PX%(NX + 1,NY):YA = PY%(NX + 1,NY):XB = PX%(NX,NY):YB = PY%(NX,NY)
-980 XD = XB - XA:YD = YB - YA:S =  SQR ((XD * XD + YD * YD) / 2): IF S = 0 THEN 1000
-990 XB =  INT (XB - XD / S + .5):YB =  INT (YB - YD / S + .5): GOSUB 20
-1000 XA = PX%(NX,NY + 1):YA = PY%(NX,NY + 1):XB = PX%(NX,NY):YB = PY%(NX,NY): GOSUB 20
-1010  NEXT : NEXT
 1020  TEXT : PRINT "J'AI FINI LES CALCULS."
 1030  GET A$: IF A$ = " " THEN  END
 1040  GOTO 1030
@@ -50,8 +33,8 @@ float Z0 = 0;
 float Z1 = 0;
 uint HH = 191;                                      // 350 HH = 191
 uint BR = 279;                                      // 360 BR = 279
-int[BR-1] O;                                        // 370  DIM O%(BR - 1),U%(BR - 1)
-int[BR-1] U;
+int[BR] O;                                        // 370  DIM O%(BR - 1),U%(BR - 1)
+int[BR] U;
 int[][] PX, PY;                                     // 500  DIM PX%(NL,NL),PY%(NL,NL)
 float[] X, Y;                                       // 500  DIM X((NL + 1) ^ 2 - 1),Y((NL + 1) ^ 2 - 1)
 
@@ -86,16 +69,16 @@ void GOSUB20()
       YY = YY + YD;
       XP = floor(XX + .5);
       YP = floor(YY + .5);
-      if(O(YP)<0) {                                 // 100  IF O%(YP) < 0 THEN O%(YP) = XP:U%(YP) = XP: GOTO 140
-        O(YP) = XP;
-        U(YP) = XP;
+      if(O[YP]<0) {                                 // 100  IF O%(YP) < 0 THEN O%(YP) = XP:U%(YP) = XP: GOTO 140
+        O[YP] = XP;
+        U[YP] = XP;
       }
       else {
-        if(XP > O(YP))                              // 110  IF XP > O%(YP) THEN O%(YP) = XP: GOTO 140
-          O(YP) = XP;
+        if(XP > O[YP])                              // 110  IF XP > O%(YP) THEN O%(YP) = XP: GOTO 140
+          O[YP] = XP;
         else                                        // 120  IF XP < U%(YP) THEN U%(YP) = XP: GOTO 140
-          if(XP < U(YP))
-            U(YP) = XP;
+          if(XP < U[YP])
+            U[YP] = XP;
         continue;                                   // 130  GOTO 150
       }
       HPLOT(YP,XP);                                 // 140  HPLOT YP,XP
@@ -175,8 +158,8 @@ void GOTO670()
     for(NY=0; NY<=NL; NY++) {
       Y = Y + YS;
       GOSUB200;
-      X(PT) = XX;
-      Y(PT) = YY;
+      X[PT] = XX;
+      Y[PT] = YY;
       POKE(1024, NX);
       POKE(1025, NY);
       if(Z > Z1)                                  // 760  IF Z > Z1 THEN Z1 = Z: GOTO 780
@@ -200,6 +183,66 @@ void GOTO670()
   writeln("MINIMUM Z ", Z0);                     // 830  PRINT "MINIMUM Z ";Z0
   writeln("MAXIMUM Z ", Z1);                     // 840  PRINT "MAXIMUM Z ";Z1
 }
+
+void GOTO850()
+{
+  writeln("\nJE CALCULE UN CHAMP DE DONNEES");          // 850  PRINT
+                                                        // 860  PRINT "JE CALCULE UN CHAMP DE DONNEES"
+  writeln("NORMEES.\n\n");                              // 870  PRINT "NORMEES."
+                                                        // 880  PRINT : PRINT
+  XD = (XB - XA) / (HH-1);                              // 890 XD = (XB - XA) / (HH - 1):YD = (YB - YA) / (BR - 1):PT = 0
+  YD = (YB - YA) / (BR-1);
+  PT = 0;
+  for(NX=0; NX<=NL; NX++)                               // 900  FOR NX = 0 TO NL: FOR NY = 0 TO NL
+    for(NY=0; NY<=NL; NY++) {
+      PX[NX][NY] = (X[PT] - XA) / XD + .5;              // 910 PX%(NX,NY) = (X(PT) - XA) / XD + .5:PY%(NX,NY) = (Y(PT) - YA) / YD + .5: POKE 1024,NX: POKE 1025,NY:PT = PT + 1: NEXT : NEXT
+      PY[NX][NY] = (Y[PT] - YA) / YD + .5
+      POKE(1024, NX);
+      POKE(1025, NY);
+      PT = PT + 1
+    }
+  }
+}
+
+void GOTO920()
+{
+  HGR2;                                                 // 920  HGR2
+  for(NY = NL - 1; NY >= 0; NY--) {                     // 930  FOR NY = NL - 1 TO 0 STEP  - 1:XA = PX%(NL,NY + 1):YA = PY%(NL,NY + 1)
+    XA = PX[NL][NY + 1];
+    YA = PY[NL][NY + 1];
+    XB = PX[NL][NY];                                    // 940 XB = PX%(NL,NY):YB = PY%(NL,NY): GOSUB 20: NEXT
+    YB = PY[NL][NY];
+    GOSUB20;
+  }
+  for(NX = NL - 1; NX >= 0; NX--) {                     // 950  FOR NX = NL - 1 TO 0 STEP  - 1:XA = PX%(NX + 1,NL):YA = PY%(NX + 1,NL)
+    XA = PX[NX + 1][NL];
+    YA = PY[NX + 1][NL];
+    XB = PX[NX][NL];                                    // 960 XB = PX%(NX,NL):YB = PY%(NX,NL): GOSUB 20: FOR NY = NL - 1 TO 0 STEP  - 1
+    YB = PY[NX][NL];
+    GOSUB20;
+    for(NY = NL - 1; NY >= 0; NY--) {
+      XA = PX[NX + 1][NY];                              // 970 XA = PX%(NX + 1,NY):YA = PY%(NX + 1,NY):XB = PX%(NX,NY):YB = PY%(NX,NY)
+      YA = PY[NX + 1][NY];
+      XB = PX[NX][NY];
+      YB = PY[NX][NY];
+      XD = XB - XA;                                     // 980 XD = XB - XA:YD = YB - YA:S =  SQR ((XD * XD + YD * YD) / 2): IF S = 0 THEN 1000
+      YD = YB - YA;
+      S = sqrt((XD * XD + YD * YD) / 2.0);
+      if(S==0) {
+        XA = PX[NX][NY + 1];                            // 1000 XA = PX%(NX,NY + 1):YA = PY%(NX,NY + 1):XB = PX%(NX,NY):YB = PY%(NX,NY): GOSUB 20
+        YA = PY[NX][NY + 1];
+        XB = PX[NX][NY];
+        YB = PY[NX][NY];
+        GOSUB20;
+      }
+      else {
+                                                        // 990 XB =  INT (XB - XD / S + .5):YB =  INT (YB - YD / S + .5): GOSUB 20
+        GOSUB20;
+      }
+    }                                                   // 1010  NEXT : NEXT
+  }
+}
+
 
 /* Read a response from the keyboard */
 void GOSUB2000()                    // 2000 REM
@@ -238,6 +281,7 @@ int main(string[] args)
     if(A == 'O') {                                       // 150  IF A$ = "O" THEN 470
       GOTO470;
       GOTO670;
+      GOTO850;
     }
     return 0;                                           // 460  END
 }
