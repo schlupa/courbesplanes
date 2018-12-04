@@ -1,10 +1,9 @@
-/* 10  GOTO 330
+module courbesplanes;
 
-1020  TEXT : PRINT "J'AI FINI LES CALCULS."
-1030  GET A$: IF A$ = " " THEN  END
-1040  GOTO 1030
-*/
-import stdio;
+import applesoftrt;
+
+import std.stdio;
+import std.math;
 
 string A;
 
@@ -17,9 +16,8 @@ float YD = 0;
 float S = 0;
 float NX = 0;
 float NY = 0;
-float Y = 0;
-float X = 0;
-float PI = 3.1415925;
+float y = 0;
+float x = 0;
 float XB = 0;                                       // 340 XB = 0:YB = 0:YS = 0:XA = 0:YA = 0:XS = 0:Y0 = 0:NL = 0:Z = 0:Z0 = 0:Z1 = 0
 float YB = 0;
 float YS = 0;
@@ -31,8 +29,12 @@ float NL = 0;
 float Z = 0;
 float Z0 = 0;
 float Z1 = 0;
-uint HH = 191;                                      // 350 HH = 191
-uint BR = 279;                                      // 360 BR = 279
+float X0, X1, Y1;
+float P1, P2, P3, P4, P5;
+float AZ, PH;
+uint PT;
+enum HH = 191;                                      // 350 HH = 191
+enum BR = 279;                                      // 360 BR = 279
 int[BR] O;                                        // 370  DIM O%(BR - 1),U%(BR - 1)
 int[BR] U;
 int[][] PX, PY;                                     // 500  DIM PX%(NL,NL),PY%(NL,NL)
@@ -42,16 +44,16 @@ float[] X, Y;                                       // 500  DIM X((NL + 1) ^ 2 -
 /* Plot dot */
 void GOSUB20()
 {
-  if(O(YB) < 0 || XB <= O(YB)) {                    // 20  IF O%(YB) >  = 0 THEN  IF XB > O%(YB) THEN 50
+  if(O[YB] < 0 || XB <= O[YB]) {                    // 20  IF O%(YB) >  = 0 THEN  IF XB > O%(YB) THEN 50
     if(XA < XB) {                                   // 30  IF XA < XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
-      X = XA;      XA = XB;      XB = X;
-      Y = YA;      YA = YB;      YB = Y;
+      x = XA;      XA = XB;      XB = x;
+      y = YA;      YA = YB;      YB = y;
     }                                               // 40  GOTO 60
   }
   else {                                            // 50  IF XA > XB THEN X = XA:XA = XB:XB = X:Y = YA:YA = YB:YB = Y
     if(XA > XB) {
-      X = XA;      XA = XB;      XB = X;
-      Y = YA;      YA = YB;      YB = Y;
+      x = XA;      XA = XB;      XB = x;
+      y = YA;      YA = YB;      YB = y;
     }
   }
   XD = XB - XA;                                     // 60 XD = XB - XA:YD = YB - YA:S =  ABS (XD): IF  ABS (YD) > S THEN S =  ABS (YD)
@@ -64,7 +66,7 @@ void GOSUB20()
     YD = YD / S;
     XX = XA - XD;
     YY = YA - YD;
-    for(I=0; I<=S; I++) {                           // 90  FOR I = 0 TO S:XX = XX + XD:YY = YY + YD:XP =  INT (XX + .5):YP =  INT (YY + .5)
+    for(float I=0; I<=S; I++) {                           // 90  FOR I = 0 TO S:XX = XX + XD:YY = YY + YD:XP =  INT (XX + .5):YP =  INT (YY + .5)
       XX = XX + XD;
       YY = YY + YD;
       XP = floor(XX + .5);
@@ -90,11 +92,11 @@ void GOSUB20()
 void GOSUB200()
 {
   Z=0;                                              // 200 Z = 0:R = X * X + Y * Y: IF R < 4 THEN Z =  -  SQR (4 - R)
-  R = X * X + Y * Y;
+  float R = x * x + y * y;
   if(R < 4)
     Z = -sqrt(4 - R);
-  XX = X*P4 + Y*P5 - Z*P3;                          // 300 XX = X * P4 + Y * P5 - Z * P3
-  YY = Y*P1 - X*P2;                                 // 310 YY = Y * P1 - X * P2
+  XX = x*P4 + y*P5 - Z*P3;                          // 300 XX = X * P4 + Y * P5 - Z * P3
+  YY = y*P1 - x*P2;                                 // 310 YY = Y * P1 - X * P2
 }                                                   // 320  RETURN
 
 
@@ -151,12 +153,12 @@ void GOTO670()
   YA = YY;
   YB = YY;
   PT = 0;                                         // 750 X = X0 - XS: FOR NX = 0 TO NL:X = X + XS:Y = Y0 - YS: FOR NY = 0 TO NL:Y = Y + YS: GOSUB 200:X(PT) = XX:Y(PT) = YY: POKE 1024,NX: POKE 1025,NY
-  X = X0 - XS;
+  x = X0 - XS;
   for(NX=0; NX<=NL; NX++) {
-    X = X + XS;
-    Y = Y0 - YS;
+    x = x + XS;
+    x = Y0 - YS;
     for(NY=0; NY<=NL; NY++) {
-      Y = Y + YS;
+      y = y + YS;
       GOSUB200;
       X[PT] = XX;
       Y[PT] = YY;
@@ -193,13 +195,13 @@ void GOTO850()
   XD = (XB - XA) / (HH-1);                              // 890 XD = (XB - XA) / (HH - 1):YD = (YB - YA) / (BR - 1):PT = 0
   YD = (YB - YA) / (BR-1);
   PT = 0;
-  for(NX=0; NX<=NL; NX++)                               // 900  FOR NX = 0 TO NL: FOR NY = 0 TO NL
+  for(NX=0; NX<=NL; NX++) {                             // 900  FOR NX = 0 TO NL: FOR NY = 0 TO NL
     for(NY=0; NY<=NL; NY++) {
       PX[NX][NY] = (X[PT] - XA) / XD + .5;              // 910 PX%(NX,NY) = (X(PT) - XA) / XD + .5:PY%(NX,NY) = (Y(PT) - YA) / YD + .5: POKE 1024,NX: POKE 1025,NY:PT = PT + 1: NEXT : NEXT
-      PY[NX][NY] = (Y[PT] - YA) / YD + .5
+      PY[NX][NY] = (Y[PT] - YA) / YD + .5;
       POKE(1024, NX);
       POKE(1025, NY);
-      PT = PT + 1
+      PT = PT + 1;
     }
   }
 }
@@ -276,12 +278,17 @@ int main(string[] args)
     writeln("DE LA FORME Z=F(X,Y).");                   // 400  PRINT "DE LA FORME";: INVERSE : PRINT " 200 Z=F(X,Y) ";: NORMAL : PRINT "."
     writeln("UNE REPRESENTATION TRIDIMENSIONNELLE");    // 410  PRINT "UNE REPRESENTATION TRIDIMENSIONNELLE"
     writeln("EN SERA ETABLIE A L'ECRAN.\n\n");          // 420  PRINT "EN SERA ETABLIE A L'ECRAN."
-    writeln("LA FONCTION EST-ELLE DEJA DEFINIE ";       // 440  PRINT : PRINT "LA FONCTION EST-ELLE DEJA DEFINIE ";: GOSUB 2000
-    GOSUB2000();
-    if(A == 'O') {                                       // 150  IF A$ = "O" THEN 470
+    writeln("LA FONCTION EST-ELLE DEJA DEFINIE ");      // 440  PRINT : PRINT "LA FONCTION EST-ELLE DEJA DEFINIE ";: GOSUB 2000
+    GOSUB2000;
+    if(A == 'O') {                                      // 150  IF A$ = "O" THEN 470
       GOTO470;
       GOTO670;
       GOTO850;
     }
-    return 0;                                           // 460  END
+    TEXT;                                               // 1020  TEXT : PRINT "J'AI FINI LES CALCULS."
+    writeln("J'AI FINI LES CALCULS");
+    do {                                                // 1030  GET A$: IF A$ = " " THEN  END
+      GET(A);
+    } while(A != ' ');                                  // 1040  GOTO 1030
+                                                        //     return 0;                                           // 460  END
 }
