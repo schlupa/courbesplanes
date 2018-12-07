@@ -1,7 +1,9 @@
 module applesoftrt;
 
 import std.stdio;
+import arsd.simpledisplay;
 
+auto window = new SimpleWindow(Size(280, 192), "Apple II");
 
 void TEXT()
 {
